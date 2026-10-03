@@ -5,12 +5,18 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
 
 qt_standard_project_setup()
 
+# Habilitamos explícitamente el procesador automático de recursos de Qt (.qrc)
+set(CMAKE_AUTORCC ON)
+
 qt_add_executable(VisorMol_V10
     WIN32 MACOSX_BUNDLE
     main.cpp
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    recursos.qrc
+    lienzomolecula.h
+    lienzomolecula.cpp
 )
 
 target_link_libraries(VisorMol_V10

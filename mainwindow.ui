@@ -18,26 +18,36 @@
 QToolBar QToolButton {
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: 6px; /* Ajusta este valor para redondear más o menos las esquinas */
+    border-radius: 6px;
     padding: 4px;
 }
 
 /* Efecto visual cuando el usuario pasa el ratón por encima (Hover) */
 QToolBar QToolButton:hover {
-    background-color: #e1e1e1; /* Gris claro */
+    background-color: #e1e1e1;
     border: 1px solid #cccccc;
 }
 
 /* ESTADO PRESIONADO / ACTIVADO (Checked) */
 QToolBar QToolButton:checked {
-    background-color: #1e3a8a; /* Fondo azul marino oscuro */
-    border: 2px solid #3b82f6;     /* Borde azul brillante */
-    color: #ffffff;                /* TEXTO BLANCO: Se lee perfectamente */
+    background-color: #1e3a8a;
+    border: 2px solid #3b82f6;
+    color: #ffffff;
     font-weight: bold;
+} /* &lt;-- CORREGIDO: Faltaba cerrar esta llave */
+    
+/* --- CONTROL DEL LIENZO MOLECULAR --- */
+
+QGraphicsView#visorMolecular {
+    background-color: #1e1e1e; /* Gris carbón oscuro (estilo editor 3D/CAD) */
+    border: 1px solid #333333; /* Borde oscuro sutil */
+}
+
+/* Estado bloqueado del lienzo (Enabled = false) */
+QGraphicsView#visorMolecular:disabled {
+    background-color: #2d2d2d; /* Gris mate atenuado */
+    border: 1px solid #222222; /* Borde hundido */
 }</string>
-  </property>
-  <property name="toolButtonStyle">
-   <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -57,7 +67,7 @@ QToolBar QToolButton:checked {
      <number>9</number>
     </property>
     <item>
-     <widget class="QGraphicsView" name="graphicsView">
+     <widget class="QGraphicsView" name="visorMolecular">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -123,11 +133,14 @@ QToolBar QToolButton:checked {
    <property name="windowTitle">
     <string>Herramientas de Elementos</string>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="actionCarbono"/>
    <addaction name="actionHidrogeno"/>
@@ -177,6 +190,15 @@ QToolBar QToolButton:checked {
   <widget class="QToolBar" name="toolbarMenu">
    <property name="windowTitle">
     <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -248,26 +270,44 @@ QToolBar QToolButton:checked {
    </property>
   </action>
   <action name="actionNuevo_archivo">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/nuevo.png</normaloff>:/iconos/nuevo.png</iconset>
+   </property>
    <property name="text">
     <string>Nuevo archivo</string>
    </property>
   </action>
   <action name="actionAbrir_archivo">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/abrir.png</normaloff>:/iconos/abrir.png</iconset>
+   </property>
    <property name="text">
     <string>Abrir archivo</string>
    </property>
   </action>
   <action name="actionCerrar_archivo">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/cerrar.png</normaloff>:/iconos/cerrar.png</iconset>
+   </property>
    <property name="text">
     <string>Cerrar archivo</string>
    </property>
   </action>
   <action name="actionSalir">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/salir.png</normaloff>:/iconos/salir.png</iconset>
+   </property>
    <property name="text">
     <string>Salir</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="recursos.qrc"/>
+ </resources>
  <connections/>
 </ui>
