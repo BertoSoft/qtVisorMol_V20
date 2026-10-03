@@ -17,7 +17,18 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+private slots:
+    void on_actionNuevo_archivo_triggered();
+
 private:
     Ui::MainWindow *ui;
+
+    void initUi();
+    void initBarraElementos();
+    void initMenu();
+    void setModoEdicion(bool isEdicion);
+
+    // Variables de Clase
+    bool isModoEdicion = false;
 };
 #endif // MAINWINDOW_H
