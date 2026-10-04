@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Creador de Moléculas para MOPAC</string>
+   <string/>
   </property>
   <property name="styleSheet">
    <string notr="true">/* Estilo general para todos los botones de la barra de herramientas */
@@ -79,54 +79,6 @@ QGraphicsView#visorMolecular:disabled {
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QFrame" name="bottomFrame">
-      <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Raised</enum>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QLabel" name="labelKeywords">
-         <property name="text">
-          <string>MOPAC Keywords:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="txtArgumentos">
-         <property name="text">
-          <string>PM7 PRECISE</string>
-         </property>
-         <property name="placeholderText">
-          <string>Ej: PM7 PRECISE GEOM-OPT</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnLimpiar">
-         <property name="text">
-          <string>Limpiar Lienzo</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnExportar">
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Exportar a MOPAC (.mop)</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QToolBar" name="toolbarElementos">
@@ -137,7 +89,7 @@ QGraphicsView#visorMolecular:disabled {
     <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
    </property>
    <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
+    <enum>LeftToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
@@ -147,7 +99,10 @@ QGraphicsView#visorMolecular:disabled {
    <addaction name="actionOxigeno"/>
    <addaction name="actionNitrogeno"/>
    <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="actionModoEnlace"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -165,6 +120,8 @@ QGraphicsView#visorMolecular:disabled {
     <addaction name="actionNuevo_archivo"/>
     <addaction name="actionAbrir_archivo"/>
     <addaction name="actionCerrar_archivo"/>
+    <addaction name="actionGuardar_archivo"/>
+    <addaction name="separator"/>
     <addaction name="actionSalir"/>
    </widget>
    <widget class="QMenu" name="menuEdicion">
@@ -206,10 +163,14 @@ QGraphicsView#visorMolecular:disabled {
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionSalir"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="actionNuevo_archivo"/>
    <addaction name="actionAbrir_archivo"/>
    <addaction name="actionCerrar_archivo"/>
-   <addaction name="actionSalir"/>
+   <addaction name="actionGuardar_archivo"/>
   </widget>
   <action name="actionCarbono">
    <property name="checkable">
@@ -303,6 +264,15 @@ QGraphicsView#visorMolecular:disabled {
    </property>
    <property name="text">
     <string>Salir</string>
+   </property>
+  </action>
+  <action name="actionGuardar_archivo">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/guardar.png</normaloff>:/iconos/guardar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Guardar archivo</string>
    </property>
   </action>
  </widget>

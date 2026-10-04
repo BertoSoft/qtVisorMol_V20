@@ -4,11 +4,18 @@
 #include <QString>
 #include <QObject>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
 #include <QLine>
 #include <QtMath>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QMenu>
 
+//################################################################################################
+// Funciones Publicas
+//############################################################################################
 
 LienzoMolecula::LienzoMolecula(QObject *parent): QGraphicsScene(parent) {
 
@@ -36,7 +43,7 @@ void LienzoMolecula::limpiarLienzo(){
     contadorIds = 0;
 }
 
-QString LienzoMolecula::generarContenidoMOPAC(const QString &argumentos) const{
+QString LienzoMolecula::generarArchivoMOPAC(const QString &argumentos) const{
     // Primera y segunda línea: Argumentos y título obligatorio para MOPAC
     QString contenido = argumentos + "\n";
     contenido += "Molecula generada con VisorMol_V10\n\n";
@@ -54,6 +61,87 @@ QString LienzoMolecula::generarContenidoMOPAC(const QString &argumentos) const{
     return contenido;
 }
 
+QJsonObject LienzoMolecula::generarArchivoJson() const{
+    QJsonObject objetoRaiz;
+
+    // Serializamos la estructura atomos
+    QJsonArray arrayAtomos;
+    for(const Atomo &atomo: listaAtomos){
+        QJsonObject nodoAtomo;
+        nodoAtomo["id"]         = atomo.id;
+        nodoAtomo["simbolo"]    = atomo.simbolo;
+        nodoAtomo["x"]          = atomo.posicion.x();
+        nodoAtomo["y"]          = atomo.posicion.y();
+        nodoAtomo["z"]          = atomo.posicion.z();
+        arrayAtomos.append(nodoAtomo);
+    }
+    objetoRaiz["atomos"] = arrayAtomos;
+
+    // Serializamos los enlaces
+    QJsonArray arrayEnlaces;
+    for(const Enlace &enlace: listaEnlaces){
+        QJsonObject nodoEnlace;
+        nodoEnlace["id_atomo1"] = enlace.id_atomo1;
+        nodoEnlace["id_atomo2"] = enlace.id_atomo2;
+        nodoEnlace["orden"] = enlace.orden;
+        arrayEnlaces.append(nodoEnlace);
+    }
+    objetoRaiz["enlaces"] = arrayEnlaces;
+
+    return objetoRaiz;
+}
+
+void LienzoMolecula::cargarArchivoJson(const QJsonObject &objetoRaiz){
+    // 1. Limpiamos cualquier rastro de la molécula anterior
+    limpiarLienzo();
+
+    // 2. Reconstruimos los Átomos
+    QJsonArray arrayAtomos = objetoRaiz["atomos"].toArray();
+    int maxId = -1;
+
+    for (int i = 0; i < arrayAtomos.size(); ++i) {
+        QJsonObject nodoAtomo = arrayAtomos[i].toObject();
+        Atomo atomo;
+        atomo.id      = nodoAtomo["id"].toInt();
+        atomo.simbolo = nodoAtomo["simbolo"].toString();
+
+        // Extraemos las coordenadas espaciales
+        double x = nodoAtomo["x"].toDouble();
+        double y = nodoAtomo["y"].toDouble();
+        double z = nodoAtomo["z"].toDouble();
+        atomo.posicion = QVector3D(x, y, z);
+
+        // Controlamos cuál es el ID más alto para no repetir secuencias al añadir nuevos elementos
+        if (atomo.id > maxId) {
+            maxId = atomo.id;
+        }
+
+        listaAtomos.append(atomo);
+    }
+    // El siguiente átomo nuevo continuará la secuencia a partir del más alto
+    contadorIds = maxId + 1;
+
+    // 3. Reconstruimos los Enlaces
+    QJsonArray arrayEnlaces = objetoRaiz["enlaces"].toArray();
+    for (int i = 0; i < arrayEnlaces.size(); ++i) {
+        QJsonObject nodoEnlace = arrayEnlaces[i].toObject();
+        Enlace enlace;
+        enlace.id_atomo1 = nodoEnlace["id_atomo1"].toInt();
+        enlace.id_atomo2 = nodoEnlace["id_atomo2"].toInt();
+        enlace.orden     = nodoEnlace["orden"].toInt();
+
+        listaEnlaces.append(enlace);
+    }
+
+    // 4. Forzamos a Qt a renderizar los nuevos elementos en la escena gráfica
+    actualizarRenderizado();
+}
+
+
+//##########################################################################################
+// Funciones Protegidas
+//#####################################################################################
+
 void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
     QPointF posClick = mouseEv->scenePos();
     int indiceAtomoClick = buscarAtomoEnPosicion(posClick);
@@ -68,6 +156,7 @@ void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
 
             listaAtomos.append(nuevoAtomo);
             actualizarRenderizado(); // Redibuja todo de forma limpia
+            emit contenidoModificado();
         }
     }
     // MODO ENLACE
@@ -126,6 +215,7 @@ void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
                         }
                     }
                     actualizarRenderizado(); // Refrescamos los gráficos en pantalla
+                    emit contenidoModificado();
                 }
                 atomoSeleccionadoId = -1; // Liberamos selección
             }
@@ -133,6 +223,48 @@ void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
     }
     QGraphicsScene::mousePressEvent(mouseEv);
 }
+
+void LienzoMolecula::contextMenuEvent(QGraphicsSceneContextMenuEvent *menuEv){
+    QPointF posClick = menuEv->scenePos();
+    int idAtomoClick = buscarAtomoEnPosicion(posClick);
+
+    if(idAtomoClick != -1){
+        int idAtomoBorrar = listaAtomos[idAtomoClick].id;
+
+        QMenu menu;
+        QAction *actionEliminar = menu.addAction("Eliminar Átomo");
+        QAction *actionSeleccionada = menu.exec(menuEv->screenPos());
+
+        if(actionSeleccionada == actionEliminar){
+            // 1. Eliminar todos los enlaces conectados a este átomo
+            for (int i = listaEnlaces.size() - 1; i >= 0; --i) {
+                if (listaEnlaces[i].id_atomo1 == idAtomoBorrar ||
+                    listaEnlaces[i].id_atomo2 == idAtomoBorrar) {
+                    listaEnlaces.removeAt(i);
+                }
+            }
+
+            // 2. Eliminar el átomo de la lista lógica
+            listaAtomos.removeAt(idAtomoClick);
+
+            // 3. Forzar a Qt a redibujar la escena limpia
+            actualizarRenderizado();
+
+            // 4. Avisar a MainWindow de que el archivo ha cambiado (para poner el asterisco '*')
+            emit contenidoModificado();
+        }
+
+    }
+    else{
+        // Si hace clic derecho en el vacío, pasamos el evento al comportamiento base
+        QGraphicsScene::contextMenuEvent(menuEv);
+    }
+}
+
+
+//###########################################################################################
+// Funciones Privadas
+//#########################################################################################
 
 int LienzoMolecula::buscarAtomoEnPosicion(const QPointF &pos) const {
     double tolerancia = 20;

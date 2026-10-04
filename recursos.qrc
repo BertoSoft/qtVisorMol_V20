@@ -4,5 +4,8 @@
         <file>iconos/cerrar.png</file>
         <file>iconos/nuevo.png</file>
         <file>iconos/salir.png</file>
+        <file>iconos/importar.png</file>
+        <file>iconos/guardar.png</file>
+        <file>iconos/exportar.png</file>
     </qresource>
 </RCC>

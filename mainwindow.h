@@ -4,6 +4,8 @@
 #include "lienzomolecula.h"
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QStatusBar>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,6 +20,11 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+
+
+
+    // VAriables y Ctes de clase
+    QString NAME_APP ="Visor Molecular V2.0";
 
 private slots:
 
@@ -41,6 +48,13 @@ private slots:
 
     void on_btnLimpiar_clicked();
 
+    void on_actionGuardar_archivo_triggered();
+
+    void on_actionAbrir_archivo_triggered();
+
+protected:
+    void closeEvent(QCloseEvent *ev) override;
+
 private:
     Ui::MainWindow *ui;
 
@@ -48,13 +62,23 @@ private:
     void initBarraElementos();
     void initLienzo();
     void initMenu();
+    void initBarraEstado();
     void setModoEdicion(bool isEdicion);
+    void actualizarTituloVentana();
 
     //Funciones Privadas Internas Qt
     bool eventFilter(QObject *obj, QEvent *ev);
 
     // Variables de Clase
     bool            isModoEdicion = false;
+    bool            isModificado = false;
     LienzoMolecula  *lienzo;
+    QString         rutaArchivoActual;
+
+    // Componentes de la barra de estado
+    QStatusBar      *barraEstado;
+    QLabel          *txtTexto;
+    QLabel          *txtFecha;
+    QLabel          *txtHora;
 };
 #endif // MAINWINDOW_H

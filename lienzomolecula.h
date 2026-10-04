@@ -7,6 +7,7 @@
 #include <QVector>
 #include <QVector3D>
 #include <QString>
+#include <QJsonObject>
 
 // =========================================================================
 // ESTRUCTURAS DE DATOS ORIGINALES
@@ -50,11 +51,20 @@ public:
     void limpiarLienzo();
 
     // Transforma los datos lógicos de la molécula a código de coordenadas cartesianas MOPAC (.mop)
-    QString generarContenidoMOPAC(const QString& argumentos) const;
+    QString generarArchivoMOPAC(const QString& argumentos) const;
+
+    // Transforma los datos logicos de la molecula a un archoivo JSon
+    QJsonObject generarArchivoJson() const;
+
+    void cargarArchivoJson(const QJsonObject &objetoRaiz);
+
+signals:
+    void contenidoModificado();
 
 protected:
     // Evento nativo de Qt que captura automáticamente cuando el usuario hace clic con el ratón en el lienzo
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEv) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent *menuEv) override;
 
 private:
     // =========================================================================
