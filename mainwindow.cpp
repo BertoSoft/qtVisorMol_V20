@@ -19,6 +19,9 @@ MainWindow::~MainWindow(){
     delete ui;
 }
 
+//#########################################################################
+// Funciones Protegidas
+//##########################################################################
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
 
     // 1.- txtArgumentos -> FocusIn
@@ -34,6 +37,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
     return QMainWindow::eventFilter(obj, ev);
 }
 
+//#########################################################################################
+// Funciones Init
+//######################################################################################
 void MainWindow::initUi(){
     initLienzo();
     initBarraElementos();
@@ -102,6 +108,9 @@ void MainWindow::initMenu(){
     ui->actionNuevo_archivo->setEnabled(!isModoEdicion);
 }
 
+//###########################################################################################
+// SLOTS privados
+//#############################################################################################
 void MainWindow::on_actionNuevo_archivo_triggered(){
     setModoEdicion(true);
     initMenu();
@@ -114,13 +123,6 @@ void MainWindow::on_actionSalir_triggered(){
 void MainWindow::on_actionCerrar_archivo_triggered(){
     setModoEdicion(false);
     initMenu();
-}
-
-void MainWindow::setNuevoElemento(){
-    if (ui->actionCarbono->isChecked())   lienzo->setElementoActual("C");
-    if (ui->actionHidrogeno->isChecked()) lienzo->setElementoActual("H");
-    if (ui->actionOxigeno->isChecked())   lienzo->setElementoActual("O");
-    if (ui->actionNitrogeno->isChecked()) lienzo->setElementoActual("N");
 }
 
 void MainWindow::on_actionCarbono_triggered(){
@@ -144,11 +146,29 @@ void MainWindow::on_actionNitrogeno_triggered(){
 
 
 void MainWindow::on_actionModoEnlace_triggered(){
+    QActionGroup *actionGrupo = this->findChild<QActionGroup*>("grupoElementos");
+
+    if(actionGrupo){
+        for(QAction *action: ui->toolbarElementos->actions()){
+            action->setChecked(false);
+        }
+    }
+    ui->actionModoEnlace->setChecked(true);
     lienzo->setModoEnlace(ui->actionModoEnlace->isChecked());
 }
-
 
 void MainWindow::on_btnLimpiar_clicked(){
     lienzo->limpiarLienzo();
 }
+
+
+void MainWindow::setNuevoElemento(){
+    ui->actionModoEnlace->setChecked(false);
+
+    if (ui->actionCarbono->isChecked())   lienzo->setElementoActual("C");
+    if (ui->actionHidrogeno->isChecked()) lienzo->setElementoActual("H");
+    if (ui->actionOxigeno->isChecked())   lienzo->setElementoActual("O");
+    if (ui->actionNitrogeno->isChecked()) lienzo->setElementoActual("N");
+}
+
 

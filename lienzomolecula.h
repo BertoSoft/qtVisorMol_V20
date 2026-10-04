@@ -5,6 +5,7 @@
 
 #include <QGraphicsScene>
 #include <QVector>
+#include <QVector3D>
 #include <QString>
 
 // =========================================================================
@@ -13,15 +14,16 @@
 
 // Representa la información química y la ubicación en pantalla de un átomo
 struct Atomo {
-    int     id;        // Identificador único y numérico para cada átomo (0, 1, 2...)
-    QString simbolo;    // Símbolo químico del elemento (Ej: "C", "H", "O", "N")
-    QPointF posicion;  // Coordenadas bidimensionales (X, Y) del átomo en el lienzo de dibujo
+    int         id;        // Identificador único y numérico para cada átomo (0, 1, 2...)
+    QString     simbolo;    // Símbolo químico del elemento (Ej: "C", "H", "O", "N")
+    QVector3D   posicion;  // Coordenadas bidimensionales (X, Y) del átomo en el lienzo de dibujo
 };
 
 // Representa la unión covalente o enlace químico entre dos átomos
 struct Enlace {
-    int id_atomo1;     // ID del átomo donde inicia el enlace
-    int id_atomo2;     // ID del átomo donde termina el enlace
+    int id_atomo1;      // ID del átomo donde inicia el enlace
+    int id_atomo2;      // ID del átomo donde termina el enlace
+    int orden;          // Enlace sencillo = 1, doble = 2, y triple = 3
 };
 
 // =========================================================================
@@ -82,6 +84,17 @@ private:
 
     // Devuelve el color Radio correspondiente al elemento químico para pintarlo visualmente
     int  getRadioElemento(const QString &elemento) const;
+
+    // Devuelve la valencia maxima de un elemento
+    int getMaxValencia(int idAtomo) const;
+
+    // Suma todos los enlaces de un atomo
+    int getValenciaOcupada(int idAtomo) const;
+
+    // Métodos para limpiar y redibujar la escena de forma limpia
+    void actualizarRenderizado();
+    void renderizarAtomo(const Atomo &atomo);
+    void renderizarEnlace(const Enlace &enlace);
 };
 
 #endif // LIENZOMOLECULA_H

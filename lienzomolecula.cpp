@@ -45,108 +45,92 @@ QString LienzoMolecula::generarContenidoMOPAC(const QString &argumentos) const{
     for (const Atomo &atomo : listaAtomos) {
         // Formato estándar MOPAC: Simbolo X 1 Y 1 Z 1
         // (Los '1' le indican a MOPAC que optimice geométricamente esa coordenada)
-        contenido += QString("%1   %2 1   %3 1   0.0000 1\n")
+        contenido += QString("%1   %2 1   %3 1   %4 1\n")
                          .arg(atomo.simbolo)
-                         .arg(atomo.posicion.x() / 50.0, 0, 'f', 4)  // Escalamos los píxeles a Angstroms aproximados
-                         .arg(atomo.posicion.y() / 50.0, 0, 'f', 4);
+                         .arg(atomo.posicion.x() / 50.0, 0, 'f', 4)
+                         .arg(atomo.posicion.y() / 50.0, 0, 'f', 4)
+                         .arg(atomo.posicion.z() / 50.0, 0, 'f', 4); // <-- Z REAL
     }
     return contenido;
 }
 
 void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
-
-    // 1. Extraemos la posición exacta (X, Y) del clic en el lienzo
     QPointF posClick = mouseEv->scenePos();
+    int indiceAtomoClick = buscarAtomoEnPosicion(posClick);
 
-    // 2.- Comprobamos si existe atomo en el click
-    int hayAtomoPosClick = buscarAtomoEnPosicion(posClick);
-
-    // Modo Añadir un Atomo
-    if(modoEnlaceActivo == false){
-        // el Click ha sido en espacio vacío ???
-        if(hayAtomoPosClick == -1){
+    // MODO AÑADIR ÁTOMO
+    if (!modoEnlaceActivo) {
+        if (indiceAtomoClick == -1) {
             Atomo nuevoAtomo;
-
             nuevoAtomo.id       = contadorIds++;
             nuevoAtomo.simbolo  = elementoActual;
-            nuevoAtomo.posicion = posClick;
+            nuevoAtomo.posicion = QVector3D(posClick.x(), posClick.y(), 0.0);
 
             listaAtomos.append(nuevoAtomo);
-
-            int     radio = getRadioElemento(nuevoAtomo.simbolo);
-            QColor  color = getColorElemento(nuevoAtomo.simbolo);
-
-            QGraphicsEllipseItem *circulo = addEllipse(
-                posClick.x() - radio,
-                posClick.y() - radio,
-                radio * 2,
-                radio * 2,
-                QPen(Qt::black),
-                QBrush(QColor(getColorElemento(nuevoAtomo.simbolo)))
-                );
-            circulo->setZValue(1);
-
-            QGraphicsSimpleTextItem *texto = addSimpleText(nuevoAtomo.simbolo);
-            QRectF contornoTexto = texto->boundingRect();
-            texto->setPos(
-                posClick.x() - (contornoTexto.width() / 2),
-                posClick.y() - (contornoTexto.height() / 2)
-                );
-            texto->setZValue(2); // Texto por encima de la esfera
+            actualizarRenderizado(); // Redibuja todo de forma limpia
         }
     }
-    // Modo Crear un enlace
-    else{
-        if(hayAtomoPosClick != -1){ // El clic debe ser sobre un átomo válido
-            int idAtomoClick = listaAtomos[hayAtomoPosClick].id;
+    // MODO ENLACE
+    else {
+        if (indiceAtomoClick != -1) {
+            int idAtomo1 = atomoSeleccionadoId;
+            int idAtomo2 = listaAtomos[indiceAtomoClick].id;
 
-            if(atomoSeleccionadoId == -1){ // No hay atomo selecionado anterior
-                atomoSeleccionadoId = idAtomoClick;
+            if (idAtomo1 == -1) {
+                atomoSeleccionadoId = idAtomo2; // Primer átomo seleccionado
             }
-            else{ // Segundo atomo para el enlace
-                if(idAtomoClick != atomoSeleccionadoId){
-                    bool existeEnlace = false;
-
-                    for(const Enlace &enlace: listaEnlaces){
-                        if((enlace.id_atomo1 == idAtomoClick && enlace.id_atomo2 == atomoSeleccionadoId) ||
-                            (enlace.id_atomo1 == atomoSeleccionadoId && enlace.id_atomo2 == idAtomoClick)){
-                            existeEnlace = true;
+            else {
+                if (idAtomo2 != idAtomo1) {
+                    // 1. Buscar si YA existe un enlace entre estos dos átomos
+                    int indiceEnlaceExistente = -1;
+                    for (int i = 0; i < listaEnlaces.size(); ++i) {
+                        if ((listaEnlaces[i].id_atomo1 == idAtomo1 && listaEnlaces[i].id_atomo2 == idAtomo2) ||
+                            (listaEnlaces[i].id_atomo1 == idAtomo2 && listaEnlaces[i].id_atomo2 == idAtomo1)) {
+                            indiceEnlaceExistente = i;
                             break;
                         }
                     }
 
-                    if(!existeEnlace){
-                        // Creamos el enlace
-                        Enlace nuevoEnlace;
+                    // 2. Si YA EXISTE, aumentamos el orden (Simple -> Doble -> Triple -> Eliminar)
+                    if (indiceEnlaceExistente != -1) {
+                        Enlace &enlace = listaEnlaces[indiceEnlaceExistente];
 
-                        nuevoEnlace.id_atomo1 = atomoSeleccionadoId;
-                        nuevoEnlace.id_atomo2 = idAtomoClick;
-                        listaEnlaces.append(nuevoEnlace);
+                        // VALIDACIÓN VALENCIAS (Para subir el orden del enlace)
+                        //int valizq = getMaxValencia(idAtomo1); // Lo ideal es buscar por ID
+                        // Para simplificar la validación de valencia al subir nivel:
+                        if (getValenciaOcupada(idAtomo1) < getMaxValencia(idAtomo1) && // Nota: Usa una función auxiliar para buscar átomo por ID si los índices difieren
+                            getValenciaOcupada(idAtomo2) < getMaxValencia(idAtomo2)) {
 
-                        // Dibujamos el enlace
-                        QPointF pos1;
-                        QPointF pos2 = listaAtomos[hayAtomoPosClick].posicion;
-
-                        for(const Atomo &atomo: listaAtomos){
-                            if(atomo.id == atomoSeleccionadoId){
-                                pos1 = atomo.posicion;
-                                break;
+                            if (enlace.orden < 3) {
+                                enlace.orden++;
+                            } else {
+                                listaEnlaces.removeAt(indiceEnlaceExistente); // Si pasa de triple, se elimina
                             }
+                        } else {
+                            if (enlace.orden == 3) listaEnlaces.removeAt(indiceEnlaceExistente); // Permitir eliminar incluso si está lleno
                         }
-
-                        QGraphicsLineItem *linea = addLine(QLineF(pos1, pos2), QPen(Qt::black, 3));
-                        linea->setZValue(0);
                     }
+                    // 3. Si NO EXISTE, creamos un enlace simple nuevo (si las valencias lo permiten)
+                    else {
+                        // Al pasar directamente los IDs a las funciones auxiliares,
+                        // ya no necesitas buscar manualmente el índice 'idx1' con el bucle for.
+                        bool valencia1Ok = getValenciaOcupada(idAtomo1) < getMaxValencia(idAtomo1);
+                        bool valencia2Ok = getValenciaOcupada(idAtomo2) < getMaxValencia(idAtomo2);
+
+                        if (valencia1Ok && valencia2Ok) {
+                            Enlace nuevoEnlace;
+                            nuevoEnlace.id_atomo1 = idAtomo1;
+                            nuevoEnlace.id_atomo2 = idAtomo2;
+                            nuevoEnlace.orden = 1;
+                            listaEnlaces.append(nuevoEnlace);
+                        }
+                    }
+                    actualizarRenderizado(); // Refrescamos los gráficos en pantalla
                 }
-                // Liberamos el primer atomo seleccionado
-                atomoSeleccionadoId = -1;
+                atomoSeleccionadoId = -1; // Liberamos selección
             }
         }
     }
-
-
-    // Protip de Qt: Invocamos al método base para que la escena pueda gestionar
-    // correctamente otros eventos internos del sistema si hiciera falta.
     QGraphicsScene::mousePressEvent(mouseEv);
 }
 
@@ -187,4 +171,115 @@ int LienzoMolecula::getRadioElemento(const QString &elemento) const{
     if (elemento == "O") return 16; // Oxígeno
     if (elemento == "N") return 17; // Nitrógeno
     return 15;
+}
+
+// Devuelve la valencia maxima de un elemento
+int LienzoMolecula::getMaxValencia(int idAtomo) const {
+    for (const Atomo &atomo : listaAtomos) {
+        if (atomo.id == idAtomo) {
+            QString simbolo = atomo.simbolo;
+            if (simbolo == "H" || simbolo == "F" || simbolo == "Cl") return 1;
+            if (simbolo == "O" || simbolo == "S") return 2;
+            if (simbolo == "N" || simbolo == "P") return 3;
+            if (simbolo == "C") return 4;
+            return 0;
+        }
+    }
+    return 0; // Si no encuentra el átomo por seguridad devuelve 0
+}
+
+// Suma todos los enlaces de un atomo ya ocupados
+int LienzoMolecula::getValenciaOcupada(int idAtomo) const{
+    int total = 0;
+    for(const Enlace &enlace: listaEnlaces){
+        if(enlace.id_atomo1 == idAtomo || enlace.id_atomo2 == idAtomo){
+            total += enlace.orden;
+        }
+    }
+    return total;
+}
+
+void LienzoMolecula::actualizarRenderizado(){
+    // En lugar de añadir items de forma acumulativa, limpiamos la vista de Qt
+    // y redibujamos el estado actual de los vectores lógicos.
+    clear();
+
+    // 1. Dibujamos los enlaces primero (para que queden por debajo de las esferas)
+    for (const Enlace &enlace : listaEnlaces) {
+        renderizarEnlace(enlace);
+    }
+
+    // 2. Dibujamos los átomos
+    for (const Atomo &atomo : listaAtomos) {
+        renderizarAtomo(atomo);
+    }
+}
+
+void LienzoMolecula::renderizarAtomo(const Atomo &atomo){
+    int     radio = getRadioElemento(atomo.simbolo);
+    QColor  color = getColorElemento(atomo.simbolo);
+
+    QGraphicsEllipseItem *circulo = addEllipse(
+        atomo.posicion.x() - radio,
+        atomo.posicion.y() - radio,
+        radio * 2,
+        radio * 2,
+        QPen(Qt::black),
+        QBrush(color)
+        );
+    circulo->setZValue(1);
+
+    QGraphicsSimpleTextItem *texto = addSimpleText(atomo.simbolo);
+    QRectF contornoTexto = texto->boundingRect();
+    texto->setPos(
+        atomo.posicion.x() - (contornoTexto.width() / 2),
+        atomo.posicion.y() - (contornoTexto.height() / 2)
+        );
+    texto->setZValue(2); // Texto por encima de la esfera
+}
+
+void LienzoMolecula::renderizarEnlace(const Enlace &enlace){
+    QPointF p1, p2;
+    for(const Atomo &a : listaAtomos) {
+        if(a.id == enlace.id_atomo1) p1 = QPointF(a.posicion.x(), a.posicion.y());
+        if(a.id == enlace.id_atomo2) p2 = QPointF(a.posicion.x(), a.posicion.y());
+    }
+
+    if (enlace.orden == 1) {
+        // Enlace Simple
+        QGraphicsLineItem *linea = addLine(QLineF(p1, p2), QPen(Qt::black, 3));
+        linea->setZValue(0);
+    }
+    else {
+        // Cálculo del vector director y el vector perpendicular unitario para el desplazamiento
+        QPointF dir = p2 - p1;
+        double longitud = qSqrt(dir.x()*dir.x() + dir.y()*dir.y());
+        if (longitud == 0) return;
+
+        // Vector normalizado perpendicular (dx, dy) -> (-dy, dx)
+        QPointF normal(-dir.y() / longitud, dir.x() / longitud);
+        double distSeparacion = 5.0; // Píxeles de separación entre líneas paralelas
+
+        if (enlace.orden == 2) {
+            // Enlace Doble: Dos líneas desplazadas a cada lado del centro
+            QPointF p1_a = p1 + normal * (distSeparacion / 2.0);
+            QPointF p2_a = p2 + normal * (distSeparacion / 2.0);
+            QPointF p1_b = p1 - normal * (distSeparacion / 2.0);
+            QPointF p2_b = p2 - normal * (distSeparacion / 2.0);
+
+            addLine(QLineF(p1_a, p2_a), QPen(Qt::black, 2))->setZValue(0);
+            addLine(QLineF(p1_b, p2_b), QPen(Qt::black, 2))->setZValue(0);
+        }
+        else if (enlace.orden == 3) {
+            // Enlace Triple: Una central y dos externas
+            QPointF p1_a = p1 + normal * distSeparacion;
+            QPointF p2_a = p2 + normal * distSeparacion;
+            QPointF p1_b = p1 - normal * distSeparacion;
+            QPointF p2_b = p2 - normal * distSeparacion;
+
+            addLine(QLineF(p1, p2),     QPen(Qt::black, 2))->setZValue(0); // Central
+            addLine(QLineF(p1_a, p2_a), QPen(Qt::black, 2))->setZValue(0); // Izquierda
+            addLine(QLineF(p1_b, p2_b), QPen(Qt::black, 2))->setZValue(0); // Derecha
+        }
+    }
 }
