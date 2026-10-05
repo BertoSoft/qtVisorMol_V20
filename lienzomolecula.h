@@ -47,6 +47,9 @@ public:
     // Activa o desactiva el modo de creación de enlaces entre átomos existentes
     void setModoEnlace(bool activo);
 
+    // Set Modo Rotar, visualizacion 3D de la molecula
+    void setModoRotar(bool isActivo);
+
     // Borra por completo todos los átomos, enlaces y gráficos del lienzo
     void limpiarLienzo();
 
@@ -64,6 +67,8 @@ signals:
 protected:
     // Evento nativo de Qt que captura automáticamente cuando el usuario hace clic con el ratón en el lienzo
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEv) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEv) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEv) override;
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *menuEv) override;
 
 private:
@@ -80,6 +85,9 @@ private:
     bool    modoEnlaceActivo        = false;    // Controla el comportamiento del clic: true (une átomos), false (crea átomos)
     int     atomoSeleccionadoId     = -1;       // Guarda temporalmente el ID del primer átomo seleccionado al trazar un enlace (-1 si no hay ninguno)
     int     contadorIds             = 0;        // Generador secuencial automático para asignar IDs únicos a los átomos creados
+    bool    modoRotarActivo         = false;
+    bool    isRotando               = false;
+    QPointF ultimaPosRaton;
 
     // =========================================================================
     // FUNCIONES AUXILIARES PRIVADAS
@@ -105,6 +113,9 @@ private:
     void actualizarRenderizado();
     void renderizarAtomo(const Atomo &atomo);
     void renderizarEnlace(const Enlace &enlace);
+
+    // Metodo para rotar la molecula
+    void rotarMolecula(double anguloX, double anguloY);
 };
 
 #endif // LIENZOMOLECULA_H

@@ -96,10 +96,13 @@ void MainWindow::initBarraElementos(){
     actionGrupo->setObjectName("grupoElementos");
     actionGrupo->setExclusive(true);
 
-    // 2. Nos aseguramos de que ambas barras estén asignadas al área superior
+    // Posicionamos la barra principal de Archivo en la zona superior
     addToolBar(Qt::TopToolBarArea, ui->toolbarMenu);
-    addToolBarBreak(Qt::TopToolBarArea);
-    addToolBar(Qt::TopToolBarArea, ui->toolbarElementos);
+
+    // Posicionamos la barra de construcción y rotación a la izquierda (Vertical)
+    addToolBar(Qt::LeftToolBarArea, ui->toolbarElementos);
+
+
 }
 
 void MainWindow::initBarraEstado(){
@@ -167,7 +170,6 @@ void MainWindow::setModoEdicion(bool isEdicion){
         if(actionGrupo){
             actionGrupo->setExclusive(true);
         }
-        ui->actionCarbono->setChecked(true);
     }
 
     ui->toolbarElementos->setEnabled(isEdicion);
@@ -178,6 +180,7 @@ void MainWindow::setModoEdicion(bool isEdicion){
 }
 
 void MainWindow::initMenu(){
+    ui->actionGuardar_archivo->setEnabled(isModoEdicion);
     ui->actionCerrar_archivo->setEnabled(isModoEdicion);
     ui->actionNuevo_archivo->setEnabled(!isModoEdicion);
 }
@@ -213,6 +216,7 @@ void MainWindow::on_actionNuevo_archivo_triggered(){
     rutaArchivoActual = "";
     isModificado = false;
     actualizarTituloVentana();
+    ui->actionCarbono->setChecked(true);
 }
 
 void MainWindow::on_actionSalir_triggered(){
@@ -299,6 +303,7 @@ void MainWindow::on_actionGuardar_archivo_triggered(){
 
 void MainWindow::setNuevoElemento(){
     ui->actionModoEnlace->setChecked(false);
+    ui->actionRotar_Molecula->setChecked(false);
 
     if (ui->actionCarbono->isChecked())   lienzo->setElementoActual("C");
     if (ui->actionHidrogeno->isChecked()) lienzo->setElementoActual("H");
@@ -377,4 +382,21 @@ void MainWindow::on_actionAbrir_archivo_triggered(){
     actualizarTituloVentana();
 
 }
+
+void MainWindow::on_actionRotar_Molecula_triggered(){
+    // Desmarcamos los elementos químicos y el modo enlace
+    QActionGroup *actionGrupo = this->findChild<QActionGroup*>("grupoElementos");
+    if(actionGrupo){
+        for(QAction *action: ui->toolbarElementos->actions()){
+            action->setChecked(false);
+        }
+    }
+    ui->actionModoEnlace->setChecked(false);
+
+    // Activamos el modo rotar en la lógica del lienzo
+    ui->actionRotar_Molecula->setChecked(true);
+    lienzo->setModoRotar(ui->actionRotar_Molecula->isChecked());
+}
+
+
 

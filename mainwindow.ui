@@ -14,12 +14,17 @@
    <string/>
   </property>
   <property name="styleSheet">
-   <string notr="true">/* Estilo general para todos los botones de la barra de herramientas */
-QToolBar QToolButton {
+   <string notr="true">QToolBar QToolButton {
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
-    padding: 4px;
+    padding: 6px 12px;
+}
+
+/* Regla exclusiva para la barra lateral izquierda (Herramientas de Elementos) */
+QToolBar#toolbarElementos QToolButton {
+    min-width: 130px;        /* Hace todos los botones más anchos y uniformes */
+    text-align: right;       /* Alinea el texto a la derecha */
 }
 
 /* Efecto visual cuando el usuario pasa el ratón por encima (Hover) */
@@ -34,10 +39,9 @@ QToolBar QToolButton:checked {
     border: 2px solid #3b82f6;
     color: #ffffff;
     font-weight: bold;
-} /* &lt;-- CORREGIDO: Faltaba cerrar esta llave */
+}
     
 /* --- CONTROL DEL LIENZO MOLECULAR --- */
-
 QGraphicsView#visorMolecular {
     background-color: #1e1e1e; /* Gris carbón oscuro (estilo editor 3D/CAD) */
     border: 1px solid #333333; /* Borde oscuro sutil */
@@ -85,8 +89,11 @@ QGraphicsView#visorMolecular:disabled {
    <property name="windowTitle">
     <string>Herramientas de Elementos</string>
    </property>
+   <property name="layoutDirection">
+    <enum>Qt::LayoutDirection::RightToLeft</enum>
+   </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+    <enum>Qt::ToolButtonStyle::ToolButtonTextOnly</enum>
    </property>
    <attribute name="toolBarArea">
     <enum>LeftToolBarArea</enum>
@@ -103,6 +110,7 @@ QGraphicsView#visorMolecular:disabled {
    <addaction name="separator"/>
    <addaction name="actionModoEnlace"/>
    <addaction name="separator"/>
+   <addaction name="actionRotar_Molecula"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -133,15 +141,23 @@ QGraphicsView#visorMolecular:disabled {
     <property name="title">
      <string>Ver</string>
     </property>
+    <addaction name="actionRotar_Molecula"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuC_lculo">
+    <property name="title">
+     <string>Cálculo</string>
+    </property>
+    <addaction name="actionOptimizaci_n_Geom_trica"/>
+   </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuEdicion"/>
    <addaction name="menuVer"/>
+   <addaction name="menuC_lculo"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolbarMenu">
@@ -273,6 +289,23 @@ QGraphicsView#visorMolecular:disabled {
    </property>
    <property name="text">
     <string>Guardar archivo</string>
+   </property>
+  </action>
+  <action name="actionRotar_Molecula">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/rotar.png</normaloff>:/iconos/rotar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotar Molécula</string>
+   </property>
+  </action>
+  <action name="actionOptimizaci_n_Geom_trica">
+   <property name="text">
+    <string>Optimización Geométrica</string>
    </property>
   </action>
  </widget>

@@ -35,6 +35,14 @@ void LienzoMolecula::setModoEnlace(bool isActivo){
     atomoSeleccionadoId = -1;
 }
 
+void LienzoMolecula::setModoRotar(bool isActivo){
+    modoRotarActivo = true;
+    if(modoRotarActivo){
+        modoEnlaceActivo = false;
+        atomoSeleccionadoId = -1;
+    }
+}
+
 void LienzoMolecula::limpiarLienzo(){
     clear();
     listaAtomos.clear();
@@ -146,6 +154,15 @@ void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
     QPointF posClick = mouseEv->scenePos();
     int indiceAtomoClick = buscarAtomoEnPosicion(posClick);
 
+    // Solo si esta en modo rotacion
+    if (modoRotarActivo) {
+        if (indiceAtomoClick == -1) { // Solo rotamos si hace clic en el vacío
+            isRotando = true;
+            ultimaPosRaton = posClick;
+        }
+        return; // Saltamos el comportamiento de añadir/enlazar
+    }
+
     // MODO AÑADIR ÁTOMO
     if (!modoEnlaceActivo) {
         if (indiceAtomoClick == -1) {
@@ -224,6 +241,32 @@ void LienzoMolecula::mousePressEvent(QGraphicsSceneMouseEvent *mouseEv){
     QGraphicsScene::mousePressEvent(mouseEv);
 }
 
+void LienzoMolecula::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEv){
+    if(modoRotarActivo && isRotando){
+        QPointF posActual = mouseEv->scenePos();
+        QPointF deltaPos    = posActual - ultimaPosRaton;
+
+        // Sensibilidad del giro (ajustable)
+        double factorSensibilidad = 0.5;
+        double anguloY = deltaPos.x() * factorSensibilidad; // Movimiento horizontal rota en Y
+        double anguloX = deltaPos.y() * factorSensibilidad; // Movimiento vertical rota en X
+
+        rotarMolecula(anguloX, anguloY);
+
+        ultimaPosRaton = posActual;
+        actualizarRenderizado(); // Redibuja la molécula girada
+        emit contenidoModificado();
+    }
+    QGraphicsScene::mouseMoveEvent(mouseEv);
+}
+
+void LienzoMolecula::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEv) {
+    if (modoRotarActivo) {
+        isRotando = false;
+    }
+    QGraphicsScene::mouseReleaseEvent(mouseEv);
+}
+
 void LienzoMolecula::contextMenuEvent(QGraphicsSceneContextMenuEvent *menuEv){
     QPointF posClick = menuEv->scenePos();
     int idAtomoClick = buscarAtomoEnPosicion(posClick);
@@ -298,10 +341,10 @@ QColor LienzoMolecula::getColorElemento(const QString &elemento) const{
 
 int LienzoMolecula::getRadioElemento(const QString &elemento) const{
     // Proporciones basadas en radios atómicos relativos (escalados para pantalla)
-    if (elemento == "C") return 18; // Carbono estándar
-    if (elemento == "H") return 12; // Hidrógeno (más pequeño)
-    if (elemento == "O") return 16; // Oxígeno
-    if (elemento == "N") return 17; // Nitrógeno
+    if (elemento == "C") return 36; // Carbono estándar
+    if (elemento == "H") return 24; // Hidrógeno (más pequeño)
+    if (elemento == "O") return 32; // Oxígeno
+    if (elemento == "N") return 34; // Nitrógeno
     return 15;
 }
 
@@ -413,5 +456,36 @@ void LienzoMolecula::renderizarEnlace(const Enlace &enlace){
             addLine(QLineF(p1_a, p2_a), QPen(Qt::black, 2))->setZValue(0); // Izquierda
             addLine(QLineF(p1_b, p2_b), QPen(Qt::black, 2))->setZValue(0); // Derecha
         }
+    }
+}
+
+void LienzoMolecula::rotarMolecula(double anguloX, double anguloY) {
+    // Convertimos grados a radianes
+    double radX = qDegreesToRadians(anguloX);
+    double radY = qDegreesToRadians(anguloY);
+
+    double cosX = qCos(radX);
+    double sinX = qSin(radX);
+    double cosY = qCos(radY);
+    double sinY = qSin(radY);
+
+    for (Atomo &atomo : listaAtomos) {
+        float x = atomo.posicion.x();
+        float y = atomo.posicion.y();
+        float z = atomo.posicion.z();
+
+        // 1. Rotación sobre el Eje X (Giro vertical)
+        float newY = y * cosX - z * sinX;
+        float newZ = y * sinX + z * cosX;
+        y = newY;
+        z = newZ;
+
+        // 2. Rotación sobre el Eje Y (Giro horizontal)
+        float newX = x * cosY + z * sinY;
+        z = -x * sinY + z * cosY;
+        x = newX;
+
+        // Guardamos las nuevas coordenadas calculadas
+        atomo.posicion = QVector3D(x, y, z);
     }
 }

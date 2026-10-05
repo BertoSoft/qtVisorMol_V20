@@ -7,5 +7,6 @@
         <file>iconos/importar.png</file>
         <file>iconos/guardar.png</file>
         <file>iconos/exportar.png</file>
+        <file>iconos/rotar.png</file>
     </qresource>
 </RCC>

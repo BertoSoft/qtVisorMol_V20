@@ -52,6 +52,8 @@ private slots:
 
     void on_actionAbrir_archivo_triggered();
 
+    void on_actionRotar_Molecula_triggered();
+
 protected:
     void closeEvent(QCloseEvent *ev) override;
 

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OptimizacionGeometrica</class>
+ <widget class="QDialog" name="OptimizacionGeometrica">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>565</width>
+    <height>361</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Configuración de Cálculo MOPAC</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+QLabel {
+    color: #e0e0e0;
+    font-size: 12px;
+}
+QComboBox, QSpinBox, QLineEdit {
+    background-color: #252525;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 4px;
+    color: #e0e0e0;
+}
+QLineEdit#linePreview {
+    background-color: #111111;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    font-family: &quot;Courier New&quot;, monospace;
+    font-weight: bold;
+}
+QComboBox::drop-down {
+    border: none;
+}
+QCheckBox {
+    color: #e0e0e0;
+}
+QPushButton {
+    background-color: #2d2d2d;
+    border: 1px solid #444444;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #3d3d3d;
+}
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>15</number>
+   </property>
+   <property name="topMargin">
+    <number>15</number>
+   </property>
+   <property name="rightMargin">
+    <number>15</number>
+   </property>
+   <property name="bottomMargin">
+    <number>15</number>
+   </property>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="horizontalSpacing">
+      <number>15</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>12</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelMetodo">
+       <property name="text">
+        <string>Método Hamiltoniano:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboMetodo">
+       <item>
+        <property name="text">
+         <string>PM7</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>PM6</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>AM1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>RM1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MNDO</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelTarea">
+       <property name="text">
+        <string>Tipo de Tarea:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboTarea">
+       <item>
+        <property name="text">
+         <string>EF (Optimización Geométrica)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1SCF (Energía Puntual)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>FORCE (Cálculo Vibracional)</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelCarga">
+       <property name="text">
+        <string>Carga Total:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QSpinBox" name="spinCarga">
+       <property name="minimum">
+        <number>-4</number>
+       </property>
+       <property name="maximum">
+        <number>4</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelMultiplicidad">
+       <property name="text">
+        <string>Multiplicidad de Espín:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="comboMultiplicidad">
+       <item>
+        <property name="text">
+         <string>SINGLET (Singlete)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>DOUBLET (Doblete)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>TRIPLET (Triplete)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>QUARTET (Cuartete)</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QCheckBox" name="checkPrecision">
+       <property name="text">
+        <string>Criterios de convergencia estrictos (PRECISE)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelPreview">
+       <property name="text">
+        <string>Comando MOPAC:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="linePreview">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+</ui>
