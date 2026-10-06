@@ -8,5 +8,6 @@
         <file>iconos/guardar.png</file>
         <file>iconos/exportar.png</file>
         <file>iconos/rotar.png</file>
+        <file>iconos/optimizacion.png</file>
     </qresource>
 </RCC>

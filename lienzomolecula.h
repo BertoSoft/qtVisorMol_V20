@@ -61,6 +61,8 @@ public:
 
     void cargarArchivoJson(const QJsonObject &objetoRaiz);
 
+    bool actualizarGeometriaDesdeMOPACPOut(const QString &contenidoOut);
+
 signals:
     void contenidoModificado();
 

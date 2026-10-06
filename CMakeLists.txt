@@ -18,6 +18,7 @@ qt_add_executable(VisorMol_V10
     lienzomolecula.h
     lienzomolecula.cpp
     optimizaciongeometrica.h optimizaciongeometrica.cpp optimizaciongeometrica.ui
+
 )
 
 target_link_libraries(VisorMol_V10

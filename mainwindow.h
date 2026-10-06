@@ -54,6 +54,12 @@ private slots:
 
     void on_actionRotar_Molecula_triggered();
 
+    void on_actionOptimizaci_n_Geom_trica_triggered();
+
+    void on_actionExportar_Archivo_triggered();
+
+    void on_actionVer_S_lida_MOPAC_triggered();
+
 protected:
     void closeEvent(QCloseEvent *ev) override;
 
@@ -63,7 +69,7 @@ private:
     void initUi();
     void initBarraElementos();
     void initLienzo();
-    void initMenu();
+    void actualizarEstadosDeInterfaz();
     void initBarraEstado();
     void setModoEdicion(bool isEdicion);
     void actualizarTituloVentana();
@@ -76,6 +82,7 @@ private:
     bool            isModificado = false;
     LienzoMolecula  *lienzo;
     QString         rutaArchivoActual;
+    QString         ultimoResultadoMopac; // <-- NUEVA VARIABLE DE CLASE
 
     // Componentes de la barra de estado
     QStatusBar      *barraEstado;

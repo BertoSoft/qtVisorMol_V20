@@ -130,6 +130,8 @@ QGraphicsView#visorMolecular:disabled {
     <addaction name="actionCerrar_archivo"/>
     <addaction name="actionGuardar_archivo"/>
     <addaction name="separator"/>
+    <addaction name="actionImportar_Archivo"/>
+    <addaction name="actionExportar_Archivo"/>
     <addaction name="actionSalir"/>
    </widget>
    <widget class="QMenu" name="menuEdicion">
@@ -153,6 +155,7 @@ QGraphicsView#visorMolecular:disabled {
      <string>Cálculo</string>
     </property>
     <addaction name="actionOptimizaci_n_Geom_trica"/>
+    <addaction name="actionVer_S_lida_MOPAC"/>
    </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuEdicion"/>
@@ -187,6 +190,10 @@ QGraphicsView#visorMolecular:disabled {
    <addaction name="actionAbrir_archivo"/>
    <addaction name="actionCerrar_archivo"/>
    <addaction name="actionGuardar_archivo"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="actionOptimizaci_n_Geom_trica"/>
   </widget>
   <action name="actionCarbono">
    <property name="checkable">
@@ -304,8 +311,27 @@ QGraphicsView#visorMolecular:disabled {
    </property>
   </action>
   <action name="actionOptimizaci_n_Geom_trica">
+   <property name="icon">
+    <iconset resource="recursos.qrc">
+     <normaloff>:/iconos/optimizacion.png</normaloff>:/iconos/optimizacion.png</iconset>
+   </property>
    <property name="text">
     <string>Optimización Geométrica</string>
+   </property>
+  </action>
+  <action name="actionImportar_Archivo">
+   <property name="text">
+    <string>Importar Archivo</string>
+   </property>
+  </action>
+  <action name="actionExportar_Archivo">
+   <property name="text">
+    <string>Exportar Archivo</string>
+   </property>
+  </action>
+  <action name="actionVer_S_lida_MOPAC">
+   <property name="text">
+    <string>Ver Sálida MOPAC</string>
    </property>
   </action>
  </widget>

@@ -36,7 +36,7 @@ void LienzoMolecula::setModoEnlace(bool isActivo){
 }
 
 void LienzoMolecula::setModoRotar(bool isActivo){
-    modoRotarActivo = true;
+    modoRotarActivo = isActivo; // CORREGIDO: Guarda el valor real pasado (true o false)
     if(modoRotarActivo){
         modoEnlaceActivo = false;
         atomoSeleccionadoId = -1;
@@ -58,13 +58,24 @@ QString LienzoMolecula::generarArchivoMOPAC(const QString &argumentos) const{
 
     // Escribimos la tabla de coordenadas cartesianas (Matriz Z simplificada)
     for (const Atomo &atomo : listaAtomos) {
-        // Formato estándar MOPAC: Simbolo X 1 Y 1 Z 1
-        // (Los '1' le indican a MOPAC que optimice geométricamente esa coordenada)
+        double x = atomo.posicion.x() / 50.0;
+        double y = atomo.posicion.y() / 50.0;
+        double z = atomo.posicion.z() / 50.0;
+
+        // REPARACIÓN CRÍTICA PARA ANILLOS/BENCENO:
+        // Si la coordenada Z es exactamente 0 (molécula dibujada en el plano 2D),
+        // le inyectamos una ligera componente tridimensional basada en su posición.
+        // Esto rompe la simetría plana perfecta y le da "fuerza" a MOPAC para calcular en 3D
+        if (qFuzzyIsNull(z)) {
+            z = (x + y) * 0.05;
+        }
+
+        // Formato estándar MOPAC: Simbolo X 1 Y 1 Z 1 con 6 decimales de precisión
         contenido += QString("%1   %2 1   %3 1   %4 1\n")
                          .arg(atomo.simbolo)
-                         .arg(atomo.posicion.x() / 50.0, 0, 'f', 4)
-                         .arg(atomo.posicion.y() / 50.0, 0, 'f', 4)
-                         .arg(atomo.posicion.z() / 50.0, 0, 'f', 4); // <-- Z REAL
+                         .arg(x, 0, 'f', 6)
+                         .arg(y, 0, 'f', 6)
+                         .arg(z, 0, 'f', 6);
     }
     return contenido;
 }
@@ -143,6 +154,100 @@ void LienzoMolecula::cargarArchivoJson(const QJsonObject &objetoRaiz){
 
     // 4. Forzamos a Qt a renderizar los nuevos elementos en la escena gráfica
     actualizarRenderizado();
+}
+
+bool LienzoMolecula::actualizarGeometriaDesdeMOPACPOut(const QString &contenidoOut){
+    QStringList lineas = contenidoOut.split("\n");
+    int indiceJobEnded = -1;
+    int indiceInicio = -1;
+
+    // 1. Buscamos el éxito del cálculo de abajo hacia arriba
+    for (int i = lineas.size() - 1; i >= 0; --i) {
+        if (lineas[i].contains("JOB ENDED NORMALLY")) {
+            indiceJobEnded = i;
+            break;
+        }
+    }
+
+    if (indiceJobEnded == -1) {
+        return false;
+    }
+
+    // 2. Caminamos hacia atrás desde el final para encontrar la última tabla
+    for (int i = indiceJobEnded; i >= 0; --i) {
+        QString lineaLimpia = lineas[i].trimmed();
+        if (lineaLimpia == "CARTESIAN COORDINATES") {
+            int posibleInicio = i + 1;
+            while (posibleInicio < indiceJobEnded) {
+                QString pruebaLinea = lineas[posibleInicio].trimmed();
+                if (!pruebaLinea.isEmpty() && pruebaLinea.at(0).isDigit()) {
+                    indiceInicio = posibleInicio;
+                    break;
+                }
+                posibleInicio++;
+            }
+            break;
+        }
+    }
+
+    if (indiceInicio == -1) {
+        return false;
+    }
+
+    // ESTRATEGIA DE SEGURIDAD: Creamos una lista de control para saber qué átomos ya actualizamos
+    QVector<bool> atomoActualizado(listaAtomos.size(), false);
+    int atomosProcesadosCorrectamente = 0;
+
+    // 3. Procesamos las líneas numéricas de la tabla optimizada
+    for (int i = indiceInicio; i < lineas.size(); ++i) {
+        QString linea = lineas[i].trimmed();
+
+        if (linea.isEmpty() || linea.contains("Empirical") || linea.contains("====")) {
+            break;
+        }
+
+        QStringList tokens = linea.split(QRegularExpression("\\s+"));
+        if (tokens.size() < 5) {
+            continue;
+        }
+
+        // tokens[1] es el SÍMBOLO QUÍMICO (C, H, O, N) en la tabla final de MOPAC
+        QString simboloMopac = tokens[1].trimmed();
+
+        bool okX, okY, okZ;
+        double x = tokens[2].toDouble(&okX);
+        double y = tokens[3].toDouble(&okY);
+        double z = tokens[4].toDouble(&okZ);
+
+        if (!okX || !okY || !okZ) continue;
+
+        // BUSCADOR INTELIGENTE: Buscamos en nuestro lienzo el átomo correspondiente
+        bool asignado = false;
+        for (int j = 0; j < listaAtomos.size(); ++j) {
+            // Si el símbolo coincide y este átomo de la pantalla aún no ha recibido coordenadas
+            if (listaAtomos[j].simbolo == simboloMopac && !atomoActualizado[j]) {
+                listaAtomos[j].posicion = QVector3D(x * 50.0, y * 50.0, z * 50.0);
+                atomoActualizado[j] = true;
+                atomosProcesadosCorrectamente++;
+                asignado = true;
+                break; // Pasamos a la siguiente línea de MOPAC
+            }
+        }
+
+        // Si MOPAC nos da un átomo que no tenemos en el lienzo, hay un error de consistencia crítico
+        if (!asignado) {
+            return false;
+        }
+    }
+
+    // 4. Verificación final: ¿Se actualizaron todos y cada uno de los átomos?
+    if (atomosProcesadosCorrectamente != listaAtomos.size()) {
+        return false;
+    }
+
+    // 5. Forzamos el redibujado geométrico limpio
+    actualizarRenderizado();
+    return true;
 }
 
 
